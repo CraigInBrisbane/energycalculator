@@ -83,14 +83,14 @@ export const DashboardPage = () => {
           {/* Grouped Stats Row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
-              title="EV Trip"
+              title="EV cost/100kms"
               value={`$${comparison100km.evCost.toFixed(2)}`}
               icon={Zap}
               accentClass="text-cyan-400"
               description="Per 100km"
             />
             <StatCard
-              title="ICE Trip"
+              title="ICE cost/100kms"
               value={`$${comparison100km.iceCost.toFixed(2)}`}
               icon={Fuel}
               accentClass="text-slate-500"
