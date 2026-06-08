@@ -166,7 +166,7 @@ export const DashboardPage = () => {
                       <span className="text-slate-200 font-bold">{tripLitres.toFixed(1)} L</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl mt-2">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Savings</span>
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">EV Savings</span>
                       <span className="text-lg font-bold text-emerald-400 glow-emerald">${tripStats.savings.toFixed(2)}</span>
                     </div>
                   </div>
