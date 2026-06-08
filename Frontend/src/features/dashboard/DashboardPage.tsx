@@ -97,7 +97,7 @@ export const DashboardPage = () => {
               description="Per 100km"
             />
             <StatCard
-              title="Net Savings"
+              title="EV Savings per 100kms"
               value={`$${comparison100km.savings.toFixed(2)}`}
               icon={TrendingDown}
               accentClass="text-emerald-400"
@@ -105,7 +105,7 @@ export const DashboardPage = () => {
               highlight
             />
             <StatCard
-              title="Yearly"
+              title="EV Yearly Savings"
               value={`$${comparisonYearly.savings.toFixed(0)}`}
               icon={TrendingDown}
               accentClass="text-emerald-400"
