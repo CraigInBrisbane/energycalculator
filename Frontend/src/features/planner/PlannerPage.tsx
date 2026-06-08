@@ -25,7 +25,7 @@ export const PlannerPage = () => {
     target = setHours(target, hours);
     target = setMinutes(target, minutes);
 
-    return getOptimizedSchedule(kWhNeeded, powerKW, tariffs, target, car);
+    return getOptimizedSchedule(kWhNeeded, powerKW, tariffs, target, car, new Date());
   }, [car, charger, tariffs, currentPct, targetPct, targetTime, targetDate]);
 
   const totalCost = schedule.reduce((sum, s) => sum + s.cost, 0);

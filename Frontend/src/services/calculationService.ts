@@ -23,48 +23,65 @@ export interface ChargeScheduleSegment {
   cost: number;
   rangeAdded: number;
 }
-
 export const getOptimizedSchedule = (
   kWhNeeded: number,
   powerKW: number,
   tariffs: Tariff[],
   targetTime: Date,
-  car: Car
+  car: Car,
+  startTime: Date = new Date()
 ): ChargeScheduleSegment[] => {
-  // Simple strategy: start as late as possible to finish at targetTime
-  
-  const totalDurationMinutes = calculateDurationMinutes(kWhNeeded, powerKW);
-  const startTime = addMinutes(targetTime, -totalDurationMinutes);
-  
-  const segments: ChargeScheduleSegment[] = [];
+  // 1. Generate all rate segments between startTime and targetTime
+  const segments: { startTime: Date, endTime: Date, rate: number, tariff: Tariff }[] = [];
   let currentTime = startTime;
-  let remainingMinutes = totalDurationMinutes;
 
-  while (remainingMinutes > 0) {
+  while (currentTime < targetTime) {
     const activeTariff = findTariffAtTime(currentTime, tariffs);
-    const nextTariffChange = findNextTariffChange(currentTime, tariffs);
-    
-    const minutesToChange = differenceInMinutes(nextTariffChange, currentTime);
-    const durationInThisSegment = Math.min(remainingMinutes, minutesToChange);
-    
-    const segmentEndTime = addMinutes(currentTime, durationInThisSegment);
-    const kWhInSegment = (durationInThisSegment / 60) * powerKW;
-    
+    const nextChange = findNextTariffChange(currentTime, tariffs);
+    const segmentEnd = nextChange > targetTime ? targetTime : nextChange;
+
     segments.push({
       startTime: currentTime,
-      endTime: segmentEndTime,
-      tariff: activeTariff,
-      kWhCharged: kWhInSegment,
-      cost: kWhInSegment * activeTariff.rate,
-      rangeAdded: (kWhInSegment / car.avgUsage) * 100,
+      endTime: segmentEnd,
+      rate: activeTariff.rate,
+      tariff: activeTariff
     });
 
-    currentTime = segmentEndTime;
-    remainingMinutes -= durationInThisSegment;
+    currentTime = segmentEnd;
   }
 
-  return segments;
+  // 2. Sort segments by rate (cheapest first)
+  const sortedSegments = [...segments].sort((a, b) => a.rate - b.rate);
+
+  // 3. Allocate kWh to the cheapest segments
+  let remainingKWh = kWhNeeded;
+  const plannedSegments: ChargeScheduleSegment[] = [];
+
+  for (const segment of sortedSegments) {
+    if (remainingKWh <= 0) break;
+
+    const durationMinutes = differenceInMinutes(segment.endTime, segment.startTime);
+    const capacityKWh = (durationMinutes / 60) * powerKW;
+    const amountToCharge = Math.min(remainingKWh, capacityKWh);
+
+    if (amountToCharge > 0) {
+      const minutesToCharge = Math.ceil((amountToCharge / powerKW) * 60);
+      plannedSegments.push({
+        startTime: segment.startTime,
+        endTime: addMinutes(segment.startTime, minutesToCharge),
+        tariff: segment.tariff,
+        kWhCharged: amountToCharge,
+        cost: amountToCharge * segment.rate,
+        rangeAdded: (amountToCharge / car.avgUsage) * 100,
+      });
+      remainingKWh -= amountToCharge;
+    }
+  }
+
+  // 4. Sort by startTime for display
+  return plannedSegments.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 };
+
 
 const findTariffAtTime = (time: Date, tariffs: Tariff[]): Tariff => {
   const timeStr = format(time, 'HH:mm');

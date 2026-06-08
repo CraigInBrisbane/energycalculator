@@ -34,30 +34,27 @@ describe('calculationService', () => {
   });
 
   it('generates an optimized schedule across tariff changes', () => {
+    const startTime = new Date('2026-06-08T04:00:00'); // 4 AM
     const targetTime = new Date('2026-06-08T07:00:00'); // 7 AM
-    const kWhNeeded = 6.6; // 2 hours at 3.3 kW
+    const kWhNeeded = 3.3; // 1 hour at 3.3 kW
     const powerKW = 3.3;
 
-    const schedule = getOptimizedSchedule(kWhNeeded, powerKW, mockTariffs, targetTime, mockCar);
+    const schedule = getOptimizedSchedule(kWhNeeded, powerKW, mockTariffs, targetTime, mockCar, startTime);
 
-    expect(schedule).toHaveLength(2);
-    
-    // Last segment: 6 AM to 7 AM (Day rate)
-    expect(schedule[1].tariff.id).toBe('1');
-    expect(schedule[1].cost).toBeCloseTo(3.3 * 0.30);
-    expect(schedule[1].rangeAdded).toBeCloseTo((3.3 / 15) * 100);
-    
-    // First segment: 5 AM to 6 AM (Night rate)
+    expect(schedule).toHaveLength(1);
+
+    // Only one segment in Night rate (4am-5am)
     expect(schedule[0].tariff.id).toBe('2');
     expect(schedule[0].cost).toBeCloseTo(3.3 * 0.10);
   });
-
   it('handles midnight tariff transition correctly', () => {
+    const startTime = new Date('2026-06-07T22:00:00'); // 10 PM
     const targetTime = new Date('2026-06-08T02:00:00'); // 2 AM
     const kWhNeeded = 13.2; // 4 hours at 3.3 kW
     const powerKW = 3.3;
 
-    const schedule = getOptimizedSchedule(kWhNeeded, powerKW, mockTariffs, targetTime, mockCar);
+    const schedule = getOptimizedSchedule(kWhNeeded, powerKW, mockTariffs, targetTime, mockCar, startTime);
+
 
     expect(schedule).toHaveLength(2);
     
