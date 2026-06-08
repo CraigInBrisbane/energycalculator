@@ -141,7 +141,7 @@ export const DashboardPage = () => {
                   <p className="text-4xl font-bold tracking-tighter text-white glow-cyan mb-4">${tripStats.evCost.toFixed(2)}</p>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-slate-500 font-medium tracking-wide">Energy</span>
+                      <span className="text-slate-500 font-medium tracking-wide">Energy used</span>
                       <span className="text-slate-200 font-bold">{tripKWh.toFixed(1)} kWh</span>
                     </div>
                     <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden p-0.5">
@@ -162,7 +162,7 @@ export const DashboardPage = () => {
                   <p className="text-4xl font-bold tracking-tighter text-white mb-4">${tripStats.iceCost.toFixed(2)}</p>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-slate-500 font-medium tracking-wide">Fuel</span>
+                      <span className="text-slate-500 font-medium tracking-wide">Fuel Used</span>
                       <span className="text-slate-200 font-bold">{tripLitres.toFixed(1)} L</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl mt-2">
