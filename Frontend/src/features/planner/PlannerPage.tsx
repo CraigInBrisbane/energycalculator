@@ -45,10 +45,12 @@ export const PlannerPage = () => {
       </header>
 
       {/* 2. Full Width Charge Goal Panel */}
-      <section>
+      <section className="space-y-4">
+        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] ml-2 text-center lg:text-left">Target Configuration</h4>
         <Card className="!p-6 bg-blue-600/[0.02] border-blue-500/10">
-          <div className="flex flex-col lg:flex-row items-center gap-8">
-            <div className="flex items-center gap-4 min-w-[200px]">
+          <div className="flex flex-col gap-8">
+            {/* Header Row */}
+            <div className="flex items-center gap-4">
               <div className="p-3 bg-blue-600 rounded-xl shadow-lg shadow-blue-600/20 text-white">
                 <Target size={24} />
               </div>
@@ -58,62 +60,65 @@ export const PlannerPage = () => {
               </div>
             </div>
 
-            <div className="hidden lg:block h-12 w-px bg-slate-800/50" />
+            <div className="h-px w-full bg-slate-800/50" />
 
-            <div className="flex flex-1 flex-wrap items-end gap-6 w-full lg:w-auto">
-              <div className="flex-1 min-w-[120px]">
-                <Input
-                  label="Current %"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={currentPct}
-                  onChange={(e) => setCurrentPct(parseInt(e.target.value) || 0)}
-                  className="text-lg py-2 font-bold"
-                />
+            {/* Inputs Row */}
+            <div className="flex flex-col lg:flex-row items-end gap-8">
+              <div className="flex flex-1 flex-wrap items-end gap-6 w-full lg:w-auto">
+                <div className="flex-1 min-w-[120px]">
+                  <Input
+                    label="Current %"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={currentPct}
+                    onChange={(e) => setCurrentPct(parseInt(e.target.value) || 0)}
+                    className="text-lg py-2 font-bold"
+                  />
+                </div>
+                <div className="flex-1 min-w-[120px]">
+                  <Input
+                    label="Target %"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={targetPct}
+                    onChange={(e) => setTargetPct(parseInt(e.target.value) || 0)}
+                    className="text-lg py-2 font-bold border-blue-500/30"
+                  />
+                </div>
+                <div className="flex-[1.5] min-w-[180px]">
+                  <Input
+                    label="Target Date"
+                    type="date"
+                    value={targetDate}
+                    onChange={(e) => setTargetDate(e.target.value)}
+                    className="text-lg py-2 font-bold"
+                  />
+                </div>
+                <div className="flex-1 min-w-[120px]">
+                  <Input
+                    label="Target Time"
+                    type="time"
+                    value={targetTime}
+                    onChange={(e) => setTargetTime(e.target.value)}
+                    className="text-lg py-2 font-bold"
+                  />
+                </div>
               </div>
-              <div className="flex-1 min-w-[120px]">
-                <Input
-                  label="Target %"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={targetPct}
-                  onChange={(e) => setTargetPct(parseInt(e.target.value) || 0)}
-                  className="text-lg py-2 font-bold border-blue-500/30"
-                />
-              </div>
-              <div className="flex-[1.5] min-w-[180px]">
-                <Input
-                  label="Target Date"
-                  type="date"
-                  value={targetDate}
-                  onChange={(e) => setTargetDate(e.target.value)}
-                  className="text-lg py-2 font-bold"
-                />
-              </div>
-              <div className="flex-1 min-w-[120px]">
-                <Input
-                  label="Target Time"
-                  type="time"
-                  value={targetTime}
-                  onChange={(e) => setTargetTime(e.target.value)}
-                  className="text-lg py-2 font-bold"
-                />
-              </div>
-            </div>
 
-            <div className="hidden xl:block h-12 w-px bg-slate-800/50" />
+              <div className="hidden lg:block h-12 w-px bg-slate-800/50" />
 
-            <div className="hidden xl:flex flex-col gap-2 min-w-[180px]">
-              <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                <span>Power Rate</span>
-                <span className="text-blue-400">{powerKW.toFixed(1)} kW</span>
+              <div className="flex flex-col gap-2 min-w-[180px] w-full lg:w-auto">
+                <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  <span>Power Rate</span>
+                  <span className="text-blue-400">{powerKW.toFixed(1)} kW</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                  <div className="h-full bg-blue-500" style={{ width: `${(powerKW / 22) * 100}%` }} />
+                </div>
+                <p className="text-[10px] text-slate-600 font-medium">Single Phase @ {charger.amps}A</p>
               </div>
-              <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden shadow-inner">
-                <div className="h-full bg-blue-500" style={{ width: `${(powerKW / 22) * 100}%` }} />
-              </div>
-              <p className="text-[10px] text-slate-600 font-medium">Single Phase @ {charger.amps}A</p>
             </div>
           </div>
         </Card>
