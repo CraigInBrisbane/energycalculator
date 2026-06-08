@@ -137,7 +137,7 @@ export const DashboardPage = () => {
                   <div className="absolute -top-2 -right-2 p-4 text-blue-500/5">
                     <Zap size={60} />
                   </div>
-                  <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">EV Cost</p>
+                  <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">Total EV Trip Cost</p>
                   <p className="text-4xl font-bold tracking-tighter text-white glow-cyan mb-4">${tripStats.evCost.toFixed(2)}</p>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-[11px]">
@@ -158,7 +158,7 @@ export const DashboardPage = () => {
                   <div className="absolute -top-2 -right-2 p-4 text-slate-500/5">
                     <Fuel size={60} />
                   </div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">ICE Cost</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Total ICE Trip Cost</p>
                   <p className="text-4xl font-bold tracking-tighter text-white mb-4">${tripStats.iceCost.toFixed(2)}</p>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-[11px]">
