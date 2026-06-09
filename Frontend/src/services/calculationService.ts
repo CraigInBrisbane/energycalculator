@@ -44,6 +44,13 @@ export const getOptimizedSchedule = (
     const nextChange = findNextTariffChange(currentTime, tariffs);
     const segmentEnd = nextChange > targetTime ? targetTime : nextChange;
     
+    console.log('DEBUG Segment Detected:', {
+      name: activeTariff.name,
+      rate: activeTariff.rate,
+      start: format(currentTime, 'HH:mm'),
+      end: format(segmentEnd, 'HH:mm')
+    });
+
     segments.push({
       startTime: currentTime,
       endTime: segmentEnd,
