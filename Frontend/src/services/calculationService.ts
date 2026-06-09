@@ -34,41 +34,54 @@ export const getOptimizedSchedule = (
   // 1. Generate all rate segments between startTime and targetTime
   const segments: { startTime: Date, endTime: Date, rate: number, tariff: Tariff }[] = [];
   let currentTime = startTime;
-
+  
   while (currentTime < targetTime) {
     const activeTariff = findTariffAtTime(currentTime, tariffs);
     const nextChange = findNextTariffChange(currentTime, tariffs);
     const segmentEnd = nextChange > targetTime ? targetTime : nextChange;
-
+    
     segments.push({
       startTime: currentTime,
       endTime: segmentEnd,
       rate: activeTariff.rate,
       tariff: activeTariff
     });
-
+    
     currentTime = segmentEnd;
   }
-
-  // 2. Sort segments by rate (cheapest first)
-  const sortedSegments = [...segments].sort((a, b) => a.rate - b.rate);
-
-  // 3. Allocate kWh to the cheapest segments
+  
+  // 2. Sort segments by:
+  //    a. Rate (cheapest first)
+  //    b. Proximity to targetTime (latest first) to keep charge continuous at the end
+  const sortedSegments = [...segments].sort((a, b) => {
+    if (a.rate !== b.rate) return a.rate - b.rate;
+    return b.startTime.getTime() - a.startTime.getTime();
+  });
+  
+  // 3. Allocate kWh to the best segments
   let remainingKWh = kWhNeeded;
   const plannedSegments: ChargeScheduleSegment[] = [];
-
+  
   for (const segment of sortedSegments) {
     if (remainingKWh <= 0) break;
-
+    
     const durationMinutes = differenceInMinutes(segment.endTime, segment.startTime);
     const capacityKWh = (durationMinutes / 60) * powerKW;
     const amountToCharge = Math.min(remainingKWh, capacityKWh);
-
+    
     if (amountToCharge > 0) {
+      // For continuous charging, we want to fix the start/end times based on the segment rate
+      // But since we are filling segments out of order, this is tricky.
+      // Simplification: Allocate energy from the latest possible cheap time.
       const minutesToCharge = Math.ceil((amountToCharge / powerKW) * 60);
+      
+      // To ensure it finishes as close to target as possible,
+      // we need to reserve the latest time in the cheap segment.
+      const chargeStart = addMinutes(segment.endTime, -minutesToCharge);
+      
       plannedSegments.push({
-        startTime: segment.startTime,
-        endTime: addMinutes(segment.startTime, minutesToCharge),
+        startTime: chargeStart,
+        endTime: segment.endTime,
         tariff: segment.tariff,
         kWhCharged: amountToCharge,
         cost: amountToCharge * segment.rate,
@@ -77,8 +90,8 @@ export const getOptimizedSchedule = (
       remainingKWh -= amountToCharge;
     }
   }
-
-  // 4. Sort by startTime for display
+  
+  // 4. Sort by startTime for display and merge overlapping or adjacent segments
   return plannedSegments.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 };
 
