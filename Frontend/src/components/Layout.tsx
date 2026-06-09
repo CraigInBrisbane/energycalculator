@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -14,11 +15,13 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Sync tab state with URL on initial load
-  if (location.pathname !== `/${activeTab}`) {
+  // Sync tab state with URL after mount/location change
+  useEffect(() => {
     const tab = location.pathname.replace('/', '') as 'dashboard' | 'planner' | 'settings';
-    if (tab && activeTab !== tab) setActiveTab(tab);
-  }
+    if (tab && activeTab !== tab && (tab === 'dashboard' || tab === 'planner' || tab === 'settings')) {
+      setActiveTab(tab);
+    }
+  }, [location.pathname, activeTab, setActiveTab]);
 
   const handleNavigate = (tab: 'dashboard' | 'planner' | 'settings') => {
     setActiveTab(tab);
