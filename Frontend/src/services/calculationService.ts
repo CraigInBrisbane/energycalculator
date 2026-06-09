@@ -99,13 +99,11 @@ export const getOptimizedSchedule = (
       console.log('DEBUG Filling segment:', segment.tariff.name, 'Capacity:', capacityKWh, 'Charging:', amountToCharge);
 
       if (amountToCharge > 0) {
-
         const minutesToCharge = Math.ceil((amountToCharge / powerKW) * 60);
-        const chargeStart = addMinutes(segment.endTime, -minutesToCharge);
-
+        
         plannedSegments.push({
-          startTime: chargeStart,
-          endTime: segment.endTime,
+          startTime: segment.startTime,
+          endTime: addMinutes(segment.startTime, minutesToCharge),
           tariff: segment.tariff,
           kWhCharged: amountToCharge,
           cost: amountToCharge * segment.rate,
