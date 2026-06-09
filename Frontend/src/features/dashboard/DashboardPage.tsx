@@ -20,13 +20,13 @@ export const DashboardPage = () => {
   
   const distanceNum = parseFloat(tripDistance);
   const isValidDistance = !isNaN(distanceNum) && distanceNum > 0;
-  const tripStats = isValidDistance ? calculateICEComparison(distanceNum, iceComparison, car, avgElectricityRate / 100) : { evCost: 0, iceCost: 0, savings: 0 };
+  const tripStats = isValidDistance ? calculateICEComparison(distanceNum, iceComparison, car, avgElectricityRate) : { evCost: 0, iceCost: 0, savings: 0 };
   const tripKWh = isValidDistance ? (distanceNum / 100) * car.avgUsage : 0;
   const tripLitres = isValidDistance ? (distanceNum / 100) * iceComparison.avgL100km : 0;
   const tripBatteryPct = isValidDistance ? (tripKWh / car.batterySize) * 100 : 0;
   
-  const comparison100km = calculateICEComparison(100, iceComparison, car, avgElectricityRate / 100);
-  const comparisonYearly = calculateICEComparison(15000, iceComparison, car, avgElectricityRate / 100);
+  const comparison100km = calculateICEComparison(100, iceComparison, car, avgElectricityRate);
+  const comparisonYearly = calculateICEComparison(15000, iceComparison, car, avgElectricityRate);
 
   return (
     <div className="flex flex-col gap-6 max-w-[1600px] mx-auto">
