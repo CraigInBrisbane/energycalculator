@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { DashboardPage } from './features/dashboard/DashboardPage';
 import { PlannerPage } from './features/planner/PlannerPage';
@@ -22,9 +22,9 @@ function AppContent() {
 
 function App() {
   return (
-    <HashRouter>
+    <BrowserRouter basename="/energycalculator">
       <AppContent />
-    </HashRouter>
+    </BrowserRouter>
   );
 }
 
