@@ -1,3 +1,5 @@
+import { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Info } from 'lucide-react';
 
 interface TooltipProps {
@@ -5,14 +7,40 @@ interface TooltipProps {
 }
 
 export const Tooltip = ({ content }: TooltipProps) => {
+  const [show, setShow] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseEnter = () => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.top + window.scrollY + 20,
+        left: rect.left + window.scrollX - 100,
+      });
+      setShow(true);
+    }
+  };
+
   return (
-    <div className="group relative inline-block cursor-help">
-      <div className="text-slate-500">
-        <Info size={14} />
+    <>
+      <div 
+        ref={triggerRef} 
+        className="inline-block cursor-help"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={() => setShow(false)}
+      >
+        <Info size={14} className="text-slate-500" />
       </div>
-      <div className="absolute z-[100] w-64 p-3 mt-2 text-xs text-slate-200 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none -left-20">
-        {content}
-      </div>
-    </div>
+      {show && createPortal(
+        <div 
+          className="fixed z-[9999] w-64 p-3 text-xs text-slate-200 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl pointer-events-none"
+          style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
+        >
+          {content}
+        </div>,
+        document.body
+      )}
+    </>
   );
 };
