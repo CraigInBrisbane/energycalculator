@@ -2,8 +2,8 @@ import { useState, useMemo } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { Card } from '../../components/Card';
 import { Input } from '../../components/Input';
-import { getOptimizedSchedule, calculatePower, calculateChargeNeeded } from '../../services/calculationService';
-import { format, addDays, setHours, setMinutes } from 'date-fns';
+import { getOptimizedSchedule, calculatePower, calculateChargeNeeded, calculateDurationMinutes } from '../../services/calculationService';
+import { format, addDays, setHours, setMinutes, addMinutes } from 'date-fns';
 import type { LucideIcon } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Clock, DollarSign, Target, Calendar, Battery, Info } from 'lucide-react';
@@ -47,6 +47,9 @@ const totalKWh = schedule.reduce((sum, s) => sum + s.kWhCharged, 0);
 const totalRange = schedule.reduce((sum, s) => sum + s.rangeAdded, 0);
 
 const kWhNeeded = calculateChargeNeeded(car, plannerSettings.currentPct, plannerSettings.targetPct);
+const totalDurationMinutes = calculateDurationMinutes(kWhNeeded, calculatePower(charger));
+const completionTime = addMinutes(new Date(), totalDurationMinutes);
+
 const isGoalUnmet = totalKWh < kWhNeeded - 0.1; // Small epsilon for float comparison
 
 const startTime = schedule.length > 0 ? schedule[0].startTime : null;
@@ -68,11 +71,10 @@ return (
          <Info size={24} />
          <div>
            <p className="font-bold">Charging Goal Not Met</p>
-           <p className="text-xs">Based on your charger's power ({powerKW.toFixed(1)} kW), you cannot reach your target % by the selected time. Only {totalKWh.toFixed(1)} kWh of the requested {kWhNeeded.toFixed(1)} kWh can be added.</p>
+           <p className="text-xs">Based on your charger's power ({powerKW.toFixed(1)} kW), you cannot reach your target % by the selected time. Only {totalKWh.toFixed(1)} kWh can be added by {targetTime} {targetDate}. To get your required target charge, it will complete at approximately <span className="font-bold">{format(completionTime, 'h:mm a')}</span>.</p>
          </div>
       </div>
     )}
-
 
       {/* 2. Full Width Charge Goal Panel */}
       <section className="space-y-4">
