@@ -11,14 +11,29 @@ import { Clock, DollarSign, Target, Calendar, Battery } from 'lucide-react';
 export const PlannerPage = () => {
   const { car, charger, tariffs, plannerSettings, setPlannerSettings } = useAppStore();
   
+  const [currentPct, setCurrentPct] = useState(plannerSettings.currentPct.toString());
+  const [targetPct, setTargetPct] = useState(plannerSettings.targetPct.toString());
   const [targetTime, setTargetTime] = useState('08:00');
   const [targetDate, setTargetDate] = useState(format(addDays(new Date(), 1), 'yyyy-MM-dd'));
+  const [error, setError] = useState<string | null>(null);
+
+  const validateAndSave = (c: string, t: string) => {
+    const cNum = parseInt(c) || 0;
+    const tNum = parseInt(t) || 0;
+
+    if (cNum < 0 || cNum > 100 || tNum < 0 || tNum > 100 || cNum >= tNum) {
+      setError("Please ensure 0-100% and Current < Target");
+      return;
+    }
+    
+    setError(null);
+    setPlannerSettings({ currentPct: cNum, targetPct: tNum });
+  };
 
   const schedule = useMemo(() => {
-    console.log('DEBUG Planner Car:', car);
     const powerKW = calculatePower(charger);
+    // Use stored validated settings for calculation
     const kWhNeeded = calculateChargeNeeded(car, plannerSettings.currentPct, plannerSettings.targetPct);
-    console.log('DEBUG Planner kWhNeeded:', kWhNeeded);
     
     const [hours, minutes] = targetTime.split(':').map(Number);
     let target = new Date(targetDate);
@@ -47,75 +62,78 @@ export const PlannerPage = () => {
       <section className="space-y-4">
         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Target Configuration</h4>
         <Card className="!p-6 bg-blue-600/[0.02] border-blue-500/10">
-          <div className="flex flex-col lg:flex-row items-center gap-8">
-            {/* Header / Icon */}
-            <div className="flex items-center gap-4 min-w-[180px]">
+          <div className="flex flex-col gap-8">
+            {/* Header Row */}
+            <div className="flex items-center gap-4">
               <div className="p-3 bg-blue-600 rounded-xl shadow-lg shadow-blue-600/20 text-white">
                 <Target size={24} />
               </div>
               <div>
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Primary Goal</p>
-                <h3 className="text-sm font-bold text-white uppercase tracking-tighter whitespace-nowrap">Charge Settings</h3>
+                <h3 className="text-sm font-bold text-white uppercase tracking-tighter">Charge Settings</h3>
               </div>
             </div>
 
-            <div className="hidden lg:block h-10 w-px bg-slate-800/50" />
-
-            {/* All Inputs in one row */}
-            <div className="flex flex-1 flex-wrap items-end gap-5 w-full lg:w-auto">
-              <div className="flex-1 min-w-[100px]">
-                <Input
-                  label="Current %"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={plannerSettings.currentPct}
-                  onChange={(e) => {
-                    const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
-                    setPlannerSettings({ ...plannerSettings, currentPct: val });
-                  }}
-                  className="text-lg py-2 font-bold"
-                />
-              </div>
-              <div className="flex-1 min-w-[100px]">
-                <Input
-                  label="Target %"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={plannerSettings.targetPct}
-                  onChange={(e) => {
-                    const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
-                    setPlannerSettings({ ...plannerSettings, targetPct: val });
-                  }}
-                  className="text-lg py-2 font-bold border-blue-500/30"
-                />
-              </div>
-              <div className="flex-[1.5] min-w-[160px]">
-                <Input
-                  label="Target Date"
-                  type="date"
-                  value={targetDate}
-                  onChange={(e) => setTargetDate(e.target.value)}
-                  className="text-lg py-2 font-bold"
-                />
-              </div>
-              <div className="flex-1 min-w-[110px]">
-                <Input
-                  label="Target Time"
-                  type="time"
-                  value={targetTime}
-                  onChange={(e) => setTargetTime(e.target.value)}
-                  className="text-lg py-2 font-bold"
-                />
-              </div>
+            {/* Inputs Row */}
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-wrap items-end gap-5 w-full">
+                  <div className="flex-1 min-w-[100px]">
+                    <Input
+                      label="Current %"
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={currentPct}
+                      onChange={(e) => {
+                        setCurrentPct(e.target.value);
+                        validateAndSave(e.target.value, targetPct);
+                      }}
+                      className={clsx("text-lg py-2 font-bold", error && "border-red-500")}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-[100px]">
+                    <Input
+                      label="Target %"
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={targetPct}
+                      onChange={(e) => {
+                        setTargetPct(e.target.value);
+                        validateAndSave(currentPct, e.target.value);
+                      }}
+                      className={clsx("text-lg py-2 font-bold", error && "border-red-500")}
+                    />
+                  </div>
+                  <div className="flex-[1.5] min-w-[160px]">
+                    <Input
+                      label="Target Date"
+                      type="date"
+                      value={targetDate}
+                      onChange={(e) => setTargetDate(e.target.value)}
+                      className="text-lg py-2 font-bold"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-[110px]">
+                    <Input
+                      label="Target Time"
+                      type="time"
+                      value={targetTime}
+                      onChange={(e) => setTargetTime(e.target.value)}
+                      className="text-lg py-2 font-bold"
+                    />
+                  </div>
+                </div>
+                {error && (
+                  <p className="text-red-400 text-xs font-bold">{error}</p>
+                )}
             </div>
           </div>
         </Card>
       </section>
 
       {/* 3. Results Summary Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <SummaryStat
           icon={Clock}
           accentClass="text-blue-400"
@@ -138,7 +156,6 @@ export const PlannerPage = () => {
           highlight
         />
       </div>
-
 
       {/* 4. Schedule Breakdown */}
       <section className="space-y-6">
