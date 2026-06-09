@@ -15,8 +15,10 @@ export const PlannerPage = () => {
   const [targetDate, setTargetDate] = useState(format(addDays(new Date(), 1), 'yyyy-MM-dd'));
 
   const schedule = useMemo(() => {
+    console.log('DEBUG Planner Car:', car);
     const powerKW = calculatePower(charger);
     const kWhNeeded = calculateChargeNeeded(car, plannerSettings.currentPct, plannerSettings.targetPct);
+    console.log('DEBUG Planner kWhNeeded:', kWhNeeded);
     
     const [hours, minutes] = targetTime.split(':').map(Number);
     let target = new Date(targetDate);
