@@ -47,6 +47,31 @@ describe('calculationService', () => {
     expect(schedule[0].tariff.id).toBe('2');
     expect(schedule[0].cost).toBeCloseTo(3.3 * 0.10);
   });
+  it('strictly prioritizes cheaper tariff windows', () => {
+    // Current: 22%, Target: 80%. Battery: 77.5kWh. Need: 58% = 44.95 kWh.
+    // Power: 3.3kW. Total duration needed: ~13.6 hours.
+    // Tariffs: Peak (06:00-00:00, $0.30), Off-Peak (00:00-06:00, $0.10).
+    // The planner MUST fill the 6 hours of Off-Peak first (6 * 3.3 = 19.8 kWh)
+    // and only then use Peak.
+    
+    const startTime = new Date('2026-06-08T18:00:00'); // 6 PM
+    const targetTime = new Date('2026-06-09T10:00:00'); // 10 AM (16 hours later)
+    const kWhNeeded = 44.95; 
+    const powerKW = 3.3;
+
+    const schedule = getOptimizedSchedule(kWhNeeded, powerKW, mockTariffs, targetTime, mockCar, startTime);
+
+    // Verify it used the Off-Peak segment fully first (it spans 00:00-06:00)
+    const offPeakSegments = schedule.filter(s => s.tariff.name === 'Night');
+    const totalOffPeakKWh = offPeakSegments.reduce((sum, s) => sum + s.kWhCharged, 0);
+    
+    expect(totalOffPeakKWh).toBeCloseTo(19.8, 1);
+    
+    // Total kWh should match requirement
+    const totalKWh = schedule.reduce((sum, s) => sum + s.kWhCharged, 0);
+    expect(totalKWh).toBeCloseTo(kWhNeeded, 1);
+  });
+
   it('handles midnight tariff transition correctly', () => {
     const startTime = new Date('2026-06-07T22:00:00'); // 10 PM
     const targetTime = new Date('2026-06-08T02:00:00'); // 2 AM
@@ -54,7 +79,6 @@ describe('calculationService', () => {
     const powerKW = 3.3;
 
     const schedule = getOptimizedSchedule(kWhNeeded, powerKW, mockTariffs, targetTime, mockCar, startTime);
-
 
     expect(schedule).toHaveLength(2);
     
