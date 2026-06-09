@@ -70,7 +70,10 @@ export const PlannerPage = () => {
                   min="0"
                   max="100"
                   value={plannerSettings.currentPct}
-                  onChange={(e) => setPlannerSettings({ ...plannerSettings, currentPct: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => {
+                    const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                    setPlannerSettings({ ...plannerSettings, currentPct: val });
+                  }}
                   className="text-lg py-2 font-bold"
                 />
               </div>
@@ -81,11 +84,13 @@ export const PlannerPage = () => {
                   min="0"
                   max="100"
                   value={plannerSettings.targetPct}
-                  onChange={(e) => setPlannerSettings({ ...plannerSettings, targetPct: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => {
+                    const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                    setPlannerSettings({ ...plannerSettings, targetPct: val });
+                  }}
                   className="text-lg py-2 font-bold border-blue-500/30"
                 />
               </div>
-
               <div className="flex-[1.5] min-w-[160px]">
                 <Input
                   label="Target Date"
