@@ -71,7 +71,8 @@ return (
          <Info size={24} />
          <div>
            <p className="font-bold">Charging Goal Not Met</p>
-           <p className="text-xs">Based on your charger's power ({powerKW.toFixed(1)} kW), you cannot reach your target % by the selected time. Only {totalKWh.toFixed(1)} kWh can be added by {targetTime} {targetDate}. To get your required target charge, it will complete at approximately <span className="font-bold">{format(completionTime, 'h:mm a')}</span>.</p>
+           <p className="text-xs">Based on your charger's power ({powerKW.toFixed(1)} kW), you cannot reach your target % by the selected time. Only {totalKWh.toFixed(1)} kWh can be added by {targetTime} {targetDate}. To get your required target charge, it will complete at approximately <span className="font-bold">{format(completionTime, 'HH:mm')}</span>.</p>
+
          </div>
       </div>
     )}
@@ -156,7 +157,7 @@ return (
           icon={Clock}
           accentClass="text-blue-400"
           label="Begin charging at"
-          value={startTime ? format(startTime, 'h:mm a') : 'N/A'}
+          value={startTime ? format(startTime, 'HH:mm') : 'N/A'}
           subValue={startTime ? format(startTime, 'MMM do, yyyy') : ''}
         />
         <SummaryStat
@@ -189,23 +190,22 @@ return (
             {schedule.map((segment, i) => (
               <div key={i} className="flex flex-col md:flex-row md:items-center gap-6 p-6 hover:bg-slate-900/30 transition-all group">
                 <div className="flex items-center gap-6 md:min-w-[200px]">
-                  <div className="flex flex-col items-center justify-center p-3 bg-slate-900 rounded-xl border border-slate-800 min-w-[70px]">
-                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none mb-1">Start</p>
-                    <p className="text-sm font-bold text-white leading-none">{format(segment.startTime, 'h:mm')}</p>
-                  </div>
-                  <div className="h-px w-4 bg-slate-800" />
-                  <div className="flex flex-col items-center justify-center p-3 bg-slate-900 rounded-xl border border-slate-800 min-w-[70px]">
-                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none mb-1">End</p>
-                    <p className="text-sm font-bold text-white leading-none">{format(segment.endTime, 'h:mm')}</p>
-                  </div>
+                <div className="flex flex-col items-center justify-center p-3 bg-slate-900 rounded-xl border border-slate-800 min-w-[70px]">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none mb-1">Start</p>
+                  <p className="text-sm font-bold text-white leading-none">{format(segment.startTime, 'HH:mm')}</p>
                 </div>
-                
-                <div className="flex-1 flex flex-col md:flex-row md:items-center gap-6 lg:gap-12">
-                  <div className="md:min-w-[140px]">
-                    <p className="text-sm font-bold text-white tracking-tight mb-1">{segment.tariff.name}</p>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">${segment.tariff.rate.toFixed(3)} / kWh</p>
-                  </div>
+                <div className="h-px w-4 bg-slate-800" />
+                <div className="flex flex-col items-center justify-center p-3 bg-slate-900 rounded-xl border border-slate-800 min-w-[70px]">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none mb-1">End</p>
+                  <p className="text-sm font-bold text-white leading-none">{format(segment.endTime, 'HH:mm')}</p>
+                </div>
+                </div>
 
+                <div className="flex-1 flex flex-col md:flex-row md:items-center gap-6 lg:gap-12">
+                <div className="md:min-w-[140px]">
+                  <p className="text-sm font-bold text-white tracking-tight mb-1">{segment.tariff.name}</p>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{format(segment.startTime, 'HH:mm')} — {format(segment.endTime, 'HH:mm')}</p>
+                </div>
                   <div className="flex-1 space-y-2">
                     <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
                       <span className="text-slate-500 group-hover:text-blue-400 transition-colors">Session Energy</span>
