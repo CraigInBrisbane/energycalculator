@@ -108,11 +108,11 @@ export const PlannerPage = () => {
       </section>
 
       {/* 3. Results Summary Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <SummaryStat
           icon={Clock}
           accentClass="text-blue-400"
-          label="Est. Start Time"
+          label="Begin charging at"
           value={startTime ? format(startTime, 'h:mm a') : 'N/A'}
           subValue={startTime ? format(startTime, 'MMM do, yyyy') : ''}
         />
@@ -126,11 +126,12 @@ export const PlannerPage = () => {
         <SummaryStat
           icon={DollarSign}
           accentClass="text-emerald-400"
-          label="Total Session Cost"
+          label="Total charge cost"
           value={`$${totalCost.toFixed(2)}`}
           highlight
         />
       </div>
+
 
       {/* 4. Schedule Breakdown */}
       <section className="space-y-6">
