@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Settings, LayoutDashboard, Calculator } from 'lucide-react';
+import { VersionFooter } from './VersionFooter';
 
 interface LayoutProps {
   children: ReactNode;
@@ -85,6 +86,7 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
 
       <main className="max-w-7xl mx-auto p-6 md:p-12 lg:p-16">
         {children}
+        <VersionFooter />
       </main>
     </div>
   );
