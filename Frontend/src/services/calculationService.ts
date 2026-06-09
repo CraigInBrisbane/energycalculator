@@ -73,10 +73,12 @@ export const getOptimizedSchedule = (
   const bestFitSegment = sortedSegments.find(s => {
     const durationMinutes = differenceInMinutes(s.endTime, s.startTime);
     const capacityKWh = (durationMinutes / 60) * powerKW;
+    console.log('DEBUG Check segment fit:', s.tariff.name, 'Capacity:', capacityKWh, 'Needed:', remainingKWh);
     return capacityKWh >= remainingKWh;
   });
 
   if (bestFitSegment) {
+    console.log('DEBUG Best fit found:', bestFitSegment.tariff.name);
     const minutesToCharge = Math.ceil((remainingKWh / powerKW) * 60);
     plannedSegments.push({
       startTime: bestFitSegment.startTime,
@@ -87,30 +89,32 @@ export const getOptimizedSchedule = (
       rangeAdded: (remainingKWh / car.avgUsage) * 100,
     });
   } else {
+    console.log('DEBUG No best fit segment, falling back to filling segments');
     for (const segment of sortedSegments) {
       if (remainingKWh <= 0) break;
-      
+
       const durationMinutes = differenceInMinutes(segment.endTime, segment.startTime);
       const capacityKWh = (durationMinutes / 60) * powerKW;
       const amountToCharge = Math.min(remainingKWh, capacityKWh);
-      
+      console.log('DEBUG Filling segment:', segment.tariff.name, 'Capacity:', capacityKWh, 'Charging:', amountToCharge);
+
       if (amountToCharge > 0) {
+
         const minutesToCharge = Math.ceil((amountToCharge / powerKW) * 60);
         const chargeStart = addMinutes(segment.endTime, -minutesToCharge);
-        
+
         plannedSegments.push({
           startTime: chargeStart,
           endTime: segment.endTime,
           tariff: segment.tariff,
           kWhCharged: amountToCharge,
           cost: amountToCharge * segment.rate,
-        rangeAdded: (amountToCharge / car.avgUsage) * 100,
+          rangeAdded: (amountToCharge / car.avgUsage) * 100,
         });
         remainingKWh -= amountToCharge;
       }
     }
   }
-  
   // 4. Sort by startTime for display and merge overlapping or adjacent segments
   return plannedSegments.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 };
