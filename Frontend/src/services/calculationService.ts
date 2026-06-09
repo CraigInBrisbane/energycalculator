@@ -1,5 +1,5 @@
 import type { Car, Charger, Tariff, ICEComparison } from '../types';
-import { addMinutes, differenceInMinutes, parse, format, startOfDay } from 'date-fns';
+import { addMinutes, differenceInMinutes, format } from 'date-fns';
 
 export const calculatePower = (charger: Charger): number => {
   return (charger.voltage * charger.amps * charger.phases * charger.efficiency) / 1000;
@@ -35,31 +35,50 @@ export const getOptimizedSchedule = (
   car: Car,
   startTime: Date = new Date()
 ): ChargeScheduleSegment[] => {
-  // 1. Generate all rate segments between startTime and targetTime
-  const segments: { startTime: Date, endTime: Date, rate: number, tariff: Tariff }[] = [];
-  let currentTime = startTime;
-  
-  while (currentTime < targetTime) {
-    const activeTariff = findTariffAtTime(currentTime, tariffs);
-    const nextChange = findNextTariffChange(currentTime, tariffs);
-    const segmentEnd = nextChange > targetTime ? targetTime : nextChange;
-    
-    console.log('DEBUG Segment Detected:', {
-      name: activeTariff.name,
-      rate: activeTariff.rate,
-      start: format(currentTime, 'HH:mm'),
-      end: format(segmentEnd, 'HH:mm')
-    });
+  // 1. Generate all boundary changes for the next 48 hours
+  const boundaryTimes = new Set<number>();
+  boundaryTimes.add(startTime.getTime());
+  boundaryTimes.add(targetTime.getTime());
 
+  const tempDate = new Date(startTime);
+  tempDate.setHours(0, 0, 0, 0);
+  
+  // Add boundaries for 2 days to cover crossing midnight
+  for (let i = 0; i < 3; i++) {
+    tariffs.forEach(t => {
+      const [sh, sm] = t.startTime.split(':').map(Number);
+      const [eh, em] = t.endTime.split(':').map(Number);
+      
+      const start = new Date(tempDate);
+      start.setHours(sh, sm, 0, 0);
+      const end = new Date(tempDate);
+      end.setHours(eh, em, 0, 0);
+      
+      if (start > startTime && start < targetTime) boundaryTimes.add(start.getTime());
+      if (end > startTime && end < targetTime) boundaryTimes.add(end.getTime());
+    });
+    tempDate.setDate(tempDate.getDate() + 1);
+  }
+
+  const sortedBoundaries = Array.from(boundaryTimes).sort((a, b) => a - b);
+  
+  const segments: { startTime: Date, endTime: Date, rate: number, tariff: Tariff }[] = [];
+  
+  for (let i = 0; i < sortedBoundaries.length - 1; i++) {
+    const sStart = new Date(sortedBoundaries[i]);
+    const sEnd = new Date(sortedBoundaries[i+1]);
+    const midPoint = new Date((sStart.getTime() + sEnd.getTime()) / 2);
+    const activeTariff = findTariffAtTime(midPoint, tariffs);
+    
     segments.push({
-      startTime: currentTime,
-      endTime: segmentEnd,
+      startTime: sStart,
+      endTime: sEnd,
       rate: activeTariff.rate,
       tariff: activeTariff
     });
-    
-    currentTime = segmentEnd;
   }
+  
+  console.log('DEBUG Corrected Segments:', segments.map(s => ({rate: s.rate, name: s.tariff.name, start: format(s.startTime, 'HH:mm'), end: format(s.endTime, 'HH:mm')})));
   console.log('DEBUG Segments:', segments.map(s => ({rate: s.rate, name: s.tariff.name, start: format(s.startTime, 'HH:mm'), end: format(s.endTime, 'HH:mm')})));
   
   // 2. Sort segments by:
@@ -144,26 +163,6 @@ const isTimeInRange = (time: string, start: string, end: string): boolean => {
     // Overlap midnight (e.g., 22:00 to 06:00)
     return time >= start || time < end;
   }
-};
-
-const findNextTariffChange = (time: Date, tariffs: Tariff[]): Date => {
-  const baseDate = startOfDay(time);
-  const nextDate = addMinutes(baseDate, 1440);
-  const changeTimes: Date[] = [nextDate]; // Default to midnight tomorrow
-  
-  tariffs.forEach(t => {
-    const start = parse(t.startTime, 'HH:mm', baseDate);
-    const end = parse(t.endTime, 'HH:mm', baseDate);
-    
-    // Add times for today
-    changeTimes.push(start, end);
-    // Add times for tomorrow to handle potential future changes
-    changeTimes.push(addMinutes(start, 1440), addMinutes(end, 1440));
-  });
-
-  return changeTimes
-    .filter(t => t > time)
-    .sort((a, b) => a.getTime() - b.getTime())[0];
 };
 
 export const calculateICEComparison = (
