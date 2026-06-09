@@ -78,9 +78,6 @@ export const getOptimizedSchedule = (
     });
   }
   
-  console.log('DEBUG Corrected Segments:', segments.map(s => ({rate: s.rate, name: s.tariff.name, start: format(s.startTime, 'HH:mm'), end: format(s.endTime, 'HH:mm')})));
-  console.log('DEBUG Segments:', segments.map(s => ({rate: s.rate, name: s.tariff.name, start: format(s.startTime, 'HH:mm'), end: format(s.endTime, 'HH:mm')})));
-  
   // 2. Sort segments by:
   //    a. Rate (cheapest first)
   //    b. Proximity to targetTime (latest first) to keep charge continuous at the end
@@ -89,7 +86,14 @@ export const getOptimizedSchedule = (
     // Prioritize later times (larger start time)
     return b.startTime.getTime() - a.startTime.getTime();
   });
-  console.log('DEBUG Sorted Segments:', sortedSegments.map(s => ({rate: s.rate, name: s.tariff.name, start: format(s.startTime, 'HH:mm'), end: format(s.endTime, 'HH:mm')})));
+  
+  console.log('DEBUG FINAL Sorted Segments for allocation:', sortedSegments.map(s => ({
+    name: s.tariff.name,
+    rate: s.rate,
+    start: format(s.startTime, 'HH:mm'),
+    end: format(s.endTime, 'HH:mm'),
+    durationHours: differenceInMinutes(s.endTime, s.startTime) / 60
+  })));
   
   // 3. Allocate kWh to the best segments
   let remainingKWh = kWhNeeded;
