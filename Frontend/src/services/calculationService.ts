@@ -55,6 +55,7 @@ export const getOptimizedSchedule = (
   //    b. Proximity to targetTime (latest first) to keep charge continuous at the end
   const sortedSegments = [...segments].sort((a, b) => {
     if (a.rate !== b.rate) return a.rate - b.rate;
+    // Prioritize later times (larger start time)
     return b.startTime.getTime() - a.startTime.getTime();
   });
   
@@ -70,13 +71,12 @@ export const getOptimizedSchedule = (
     const amountToCharge = Math.min(remainingKWh, capacityKWh);
     
     if (amountToCharge > 0) {
-      // For continuous charging, we want to fix the start/end times based on the segment rate
-      // But since we are filling segments out of order, this is tricky.
-      // Simplification: Allocate energy from the latest possible cheap time.
       const minutesToCharge = Math.ceil((amountToCharge / powerKW) * 60);
       
       // To ensure it finishes as close to target as possible,
-      // we need to reserve the latest time in the cheap segment.
+      // we need to reserve the latest time in the segment.
+      // NOTE: This assumes the segment is large enough to hold the minutesToCharge.
+      // If not, it will take the full segment.
       const chargeStart = addMinutes(segment.endTime, -minutesToCharge);
       
       plannedSegments.push({
