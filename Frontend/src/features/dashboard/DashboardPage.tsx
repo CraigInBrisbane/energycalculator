@@ -16,21 +16,27 @@ export const DashboardPage = () => {
   
   const evCostPer100km = useMemo(() => {
     // Calculate cost to add the energy needed for 100km
-    const kwhNeeded = (car.avgUsage / 100) * 100;
+    const kwhNeeded = car.avgUsage; // 100km / 100 * usage
     const powerKW = calculatePower(charger);
     const targetTime = new Date();
     targetTime.setHours(targetTime.getHours() + 24); // Look ahead 24h
     
     const schedule = getOptimizedSchedule(kwhNeeded, powerKW, tariffs, targetTime, car, new Date());
-    return schedule.reduce((sum, s) => sum + s.cost, 0);
+    const totalCost = schedule.reduce((sum, s) => sum + s.cost, 0);
+    const totalKWh = schedule.reduce((sum, s) => sum + s.kWhCharged, 0);
+    
+    return {
+      costPer100km: totalCost,
+      avgCostPerKWh: totalKWh > 0 ? totalCost / totalKWh : 0
+    };
   }, [car, charger, tariffs]);
   
-  const tripStats = calculateICEComparison(tripDistance, iceComparison, car, evCostPer100km / 100);
+  const tripStats = calculateICEComparison(tripDistance, iceComparison, car, evCostPer100km.avgCostPerKWh);
   const tripKWh = (tripDistance / 100) * car.avgUsage;
   const tripLitres = (tripDistance / 100) * iceComparison.avgL100km;
   const tripBatteryPct = (tripKWh / car.batterySize) * 100;
-  const comparison100km = calculateICEComparison(100, iceComparison, car, evCostPer100km / 100);
-  const comparisonYearly = calculateICEComparison(15000, iceComparison, car, evCostPer100km / 100);
+  const comparison100km = calculateICEComparison(100, iceComparison, car, evCostPer100km.avgCostPerKWh);
+  const comparisonYearly = calculateICEComparison(15000, iceComparison, car, evCostPer100km.avgCostPerKWh);
 
 
   return (
@@ -96,7 +102,7 @@ export const DashboardPage = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               title="EV cost/100kms"
-              value={`$${evCostPer100km.toFixed(2)}`}
+              value={`$${evCostPer100km.costPer100km.toFixed(2)}`}
               icon={Zap}
               accentClass="text-cyan-400"
               description={
@@ -106,7 +112,6 @@ export const DashboardPage = () => {
                 </div>
               }
             />
-
             <StatCard
               title="ICE cost/100kms"
               value={`$${comparison100km.iceCost.toFixed(2)}`}
