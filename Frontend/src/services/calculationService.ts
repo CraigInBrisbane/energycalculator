@@ -6,8 +6,12 @@ export const calculatePower = (charger: Charger): number => {
 };
 
 export const calculateChargeNeeded = (car: Car, fromPercent: number, toPercent: number): number => {
+  console.log('DEBUG calculateChargeNeeded car:', car);
+  console.log('DEBUG calculateChargeNeeded from:', fromPercent, 'to:', toPercent);
   const percentNeeded = Math.max(0, toPercent - fromPercent);
-  return (car.batterySize * percentNeeded) / 100;
+  const needed = (car.batterySize * percentNeeded) / 100;
+  console.log('DEBUG calculateChargeNeeded result:', needed);
+  return needed;
 };
 
 export const calculateDurationMinutes = (kWhNeeded: number, powerKW: number): number => {
