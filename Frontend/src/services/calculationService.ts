@@ -63,31 +63,45 @@ export const getOptimizedSchedule = (
   let remainingKWh = kWhNeeded;
   const plannedSegments: ChargeScheduleSegment[] = [];
   
-  for (const segment of sortedSegments) {
-    if (remainingKWh <= 0) break;
-    
-    const durationMinutes = differenceInMinutes(segment.endTime, segment.startTime);
+  // Check if we can fit everything in one of the segments
+  const bestFitSegment = sortedSegments.find(s => {
+    const durationMinutes = differenceInMinutes(s.endTime, s.startTime);
     const capacityKWh = (durationMinutes / 60) * powerKW;
-    const amountToCharge = Math.min(remainingKWh, capacityKWh);
-    
-    if (amountToCharge > 0) {
-      const minutesToCharge = Math.ceil((amountToCharge / powerKW) * 60);
+    return capacityKWh >= remainingKWh;
+  });
+
+  if (bestFitSegment) {
+    const minutesToCharge = Math.ceil((remainingKWh / powerKW) * 60);
+    plannedSegments.push({
+      startTime: bestFitSegment.startTime,
+      endTime: addMinutes(bestFitSegment.startTime, minutesToCharge),
+      tariff: bestFitSegment.tariff,
+      kWhCharged: remainingKWh,
+      cost: remainingKWh * bestFitSegment.rate,
+      rangeAdded: (remainingKWh / car.avgUsage) * 100,
+    });
+  } else {
+    for (const segment of sortedSegments) {
+      if (remainingKWh <= 0) break;
       
-      // To ensure it finishes as close to target as possible,
-      // we need to reserve the latest time in the segment.
-      // NOTE: This assumes the segment is large enough to hold the minutesToCharge.
-      // If not, it will take the full segment.
-      const chargeStart = addMinutes(segment.endTime, -minutesToCharge);
+      const durationMinutes = differenceInMinutes(segment.endTime, segment.startTime);
+      const capacityKWh = (durationMinutes / 60) * powerKW;
+      const amountToCharge = Math.min(remainingKWh, capacityKWh);
       
-      plannedSegments.push({
-        startTime: chargeStart,
-        endTime: segment.endTime,
-        tariff: segment.tariff,
-        kWhCharged: amountToCharge,
-        cost: amountToCharge * segment.rate,
-        rangeAdded: (amountToCharge / car.avgUsage) * 100,
-      });
-      remainingKWh -= amountToCharge;
+      if (amountToCharge > 0) {
+        const minutesToCharge = Math.ceil((amountToCharge / powerKW) * 60);
+        const chargeStart = addMinutes(segment.endTime, -minutesToCharge);
+        
+        plannedSegments.push({
+          startTime: chargeStart,
+          endTime: segment.endTime,
+          tariff: segment.tariff,
+          kWhCharged: amountToCharge,
+          cost: amountToCharge * segment.rate,
+          rangeAdded: (amountToCharge / car.avgUsage) * 100,
+        });
+        remainingKWh -= amountToCharge;
+      }
     }
   }
   
