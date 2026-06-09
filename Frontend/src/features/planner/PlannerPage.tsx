@@ -6,7 +6,7 @@ import { getOptimizedSchedule, calculatePower, calculateChargeNeeded } from '../
 import { format, addDays, setHours, setMinutes } from 'date-fns';
 import type { LucideIcon } from 'lucide-react';
 import { clsx } from 'clsx';
-import { Clock, DollarSign, Target, Calendar, Battery } from 'lucide-react';
+import { Clock, DollarSign, Target, Calendar, Battery, Info } from 'lucide-react';
 
 export const PlannerPage = () => {
   const { car, charger, tariffs, plannerSettings, setPlannerSettings } = useAppStore();
@@ -42,21 +42,37 @@ export const PlannerPage = () => {
 
     return getOptimizedSchedule(kWhNeeded, powerKW, tariffs, target, car, new Date());
   }, [car, charger, tariffs, plannerSettings.currentPct, plannerSettings.targetPct, targetTime, targetDate]);
+const totalCost = schedule.reduce((sum, s) => sum + s.cost, 0);
+const totalKWh = schedule.reduce((sum, s) => sum + s.kWhCharged, 0);
+const totalRange = schedule.reduce((sum, s) => sum + s.rangeAdded, 0);
 
-  const totalCost = schedule.reduce((sum, s) => sum + s.cost, 0);
-  const totalKWh = schedule.reduce((sum, s) => sum + s.kWhCharged, 0);
-  const totalRange = schedule.reduce((sum, s) => sum + s.rangeAdded, 0);
-  const startTime = schedule.length > 0 ? schedule[0].startTime : null;
+const kWhNeeded = calculateChargeNeeded(car, plannerSettings.currentPct, plannerSettings.targetPct);
+const isGoalUnmet = totalKWh < kWhNeeded - 0.1; // Small epsilon for float comparison
 
-  return (
-    <div className="flex flex-col gap-8 max-w-[1600px] mx-auto">
-      {/* 1. Header */}
-      <header className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tighter text-white">Charge Planner</h2>
-          <p className="text-slate-500 text-sm font-medium">Smart Scheduling & Cost Optimization</p>
-        </div>
-      </header>
+const startTime = schedule.length > 0 ? schedule[0].startTime : null;
+const powerKW = calculatePower(charger);
+
+return (
+  <div className="flex flex-col gap-8 max-w-[1600px] mx-auto">
+    {/* 1. Header */}
+    <header className="flex items-center justify-between">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tighter text-white">Charge Planner</h2>
+        <p className="text-slate-500 text-sm font-medium">Smart Scheduling & Cost Optimization</p>
+      </div>
+    </header>
+
+    {/* Warning Banner */}
+    {isGoalUnmet && (
+      <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-4 text-amber-400">
+         <Info size={24} />
+         <div>
+           <p className="font-bold">Charging Goal Not Met</p>
+           <p className="text-xs">Based on your charger's power ({powerKW.toFixed(1)} kW), you cannot reach your target % by the selected time. Only {totalKWh.toFixed(1)} kWh of the requested {kWhNeeded.toFixed(1)} kWh can be added.</p>
+         </div>
+      </div>
+    )}
+
 
       {/* 2. Full Width Charge Goal Panel */}
       <section className="space-y-4">
