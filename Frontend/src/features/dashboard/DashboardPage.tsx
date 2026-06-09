@@ -108,16 +108,11 @@ export const DashboardPage = () => {
             />
 
             <StatCard
-              title="EV cost/100kms"
-              value={`$${evCostPer100km.toFixed(2)}`}
-              icon={Zap}
-              accentClass="text-cyan-400"
-              description={
-                <div className="flex items-center gap-1">
-                  <span>Per 100km</span>
-                  <Tooltip content="Calculated using your optimized charging schedule for the energy required to drive 100km." />
-                </div>
-              }
+              title="ICE cost/100kms"
+              value={`$${comparison100km.iceCost.toFixed(2)}`}
+              icon={Fuel}
+              accentClass="text-slate-500"
+              description="Per 100km travel"
             />
 
             <StatCard
