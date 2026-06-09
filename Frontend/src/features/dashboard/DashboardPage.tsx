@@ -10,7 +10,7 @@ import { Fuel, Zap, TrendingDown, MapPin, Gauge } from 'lucide-react';
 
 export const DashboardPage = () => {
   const { car, iceComparison, tariffs } = useAppStore();
-  const [tripDistance, setTripDistance] = useState(37);
+  const [tripDistance, setTripDistance] = useState("37");
 
   const avgElectricityRate = useMemo(() => {
     return tariffs.reduce((sum, t) => sum + t.rate, 0) / tariffs.length;
@@ -18,10 +18,13 @@ export const DashboardPage = () => {
 
   const evCostPer100km = (car.avgUsage / 100) * 100 * avgElectricityRate;
   
-  const tripStats = calculateICEComparison(tripDistance, iceComparison, car, avgElectricityRate / 100);
-  const tripKWh = (tripDistance / 100) * car.avgUsage;
-  const tripLitres = (tripDistance / 100) * iceComparison.avgL100km;
-  const tripBatteryPct = (tripKWh / car.batterySize) * 100;
+  const distanceNum = parseFloat(tripDistance);
+  const isValidDistance = !isNaN(distanceNum) && distanceNum > 0;
+  const tripStats = isValidDistance ? calculateICEComparison(distanceNum, iceComparison, car, avgElectricityRate / 100) : { evCost: 0, iceCost: 0, savings: 0 };
+  const tripKWh = isValidDistance ? (distanceNum / 100) * car.avgUsage : 0;
+  const tripLitres = isValidDistance ? (distanceNum / 100) * iceComparison.avgL100km : 0;
+  const tripBatteryPct = isValidDistance ? (tripKWh / car.batterySize) * 100 : 0;
+  
   const comparison100km = calculateICEComparison(100, iceComparison, car, avgElectricityRate / 100);
   const comparisonYearly = calculateICEComparison(15000, iceComparison, car, avgElectricityRate / 100);
 
@@ -145,9 +148,12 @@ export const DashboardPage = () => {
                     label="Distance (km)"
                     type="number"
                     value={tripDistance}
-                    onChange={(e) => setTripDistance(parseFloat(e.target.value) || 0)}
-                    className="text-lg py-2 font-bold"
+                    onChange={(e) => setTripDistance(e.target.value)}
+                    className={clsx("text-lg py-2 font-bold", !isValidDistance && "border-red-500")}
                   />
+                  {!isValidDistance && (
+                    <p className="text-red-400 text-[10px] font-bold mt-1">Please enter a valid trip distance.</p>
+                  )}
                 </div>
                 <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-600/20">
                   <MapPin size={24} />
