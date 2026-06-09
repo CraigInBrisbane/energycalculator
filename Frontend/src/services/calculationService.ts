@@ -6,12 +6,8 @@ export const calculatePower = (charger: Charger): number => {
 };
 
 export const calculateChargeNeeded = (car: Car, fromPercent: number, toPercent: number): number => {
-  console.log('DEBUG calculateChargeNeeded car:', car);
-  console.log('DEBUG calculateChargeNeeded from:', fromPercent, 'to:', toPercent);
   const percentNeeded = Math.max(0, toPercent - fromPercent);
-  const needed = (car.batterySize * percentNeeded) / 100;
-  console.log('DEBUG calculateChargeNeeded result:', needed);
-  return needed;
+  return (car.batterySize * percentNeeded) / 100;
 };
 
 export const calculateDurationMinutes = (kWhNeeded: number, powerKW: number): number => {
@@ -87,14 +83,6 @@ export const getOptimizedSchedule = (
     return b.startTime.getTime() - a.startTime.getTime();
   });
   
-  console.log('DEBUG FINAL Sorted Segments for allocation:', sortedSegments.map(s => ({
-    name: s.tariff.name,
-    rate: s.rate,
-    start: format(s.startTime, 'HH:mm'),
-    end: format(s.endTime, 'HH:mm'),
-    durationHours: differenceInMinutes(s.endTime, s.startTime) / 60
-  })));
-  
   // 3. Allocate kWh to the best segments
   let remainingKWh = kWhNeeded;
   const plannedSegments: ChargeScheduleSegment[] = [];
@@ -105,7 +93,6 @@ export const getOptimizedSchedule = (
     const durationMinutes = differenceInMinutes(segment.endTime, segment.startTime);
     const capacityKWh = (durationMinutes / 60) * powerKW;
     const amountToCharge = Math.min(remainingKWh, capacityKWh);
-    console.log('DEBUG Filling segment:', segment.tariff.name, 'Capacity:', capacityKWh, 'Charging:', amountToCharge);
 
     if (amountToCharge > 0) {
       const minutesToCharge = Math.ceil((amountToCharge / powerKW) * 60);
