@@ -1,25 +1,37 @@
-import { useState } from 'react';
+import { useState, useMemo, type ReactNode } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { Card } from '../../components/Card';
 import { Input } from '../../components/Input';
-import { calculateICEComparison } from '../../services/calculationService';
+import { Tooltip } from '../../components/Tooltip';
+import { calculateICEComparison, getOptimizedSchedule, calculatePower } from '../../services/calculationService';
 import type { LucideIcon } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Fuel, Zap, TrendingDown, MapPin, Gauge } from 'lucide-react';
 
 export const DashboardPage = () => {
-  const { car, iceComparison, tariffs } = useAppStore();
+  const { car, charger, iceComparison, tariffs } = useAppStore();
   const [tripDistance, setTripDistance] = useState(37);
 
   const avgElectricityRate = tariffs.reduce((sum, t) => sum + t.rate, 0) / tariffs.length;
   
-  const comparison100km = calculateICEComparison(100, iceComparison, car, avgElectricityRate);
-  const comparisonYearly = calculateICEComparison(15000, iceComparison, car, avgElectricityRate);
+  const evCostPer100km = useMemo(() => {
+    // Calculate cost to add the energy needed for 100km
+    const kwhNeeded = (car.avgUsage / 100) * 100;
+    const powerKW = calculatePower(charger);
+    const targetTime = new Date();
+    targetTime.setHours(targetTime.getHours() + 24); // Look ahead 24h
+    
+    const schedule = getOptimizedSchedule(kwhNeeded, powerKW, tariffs, targetTime, car, new Date());
+    return schedule.reduce((sum, s) => sum + s.cost, 0);
+  }, [car, charger, tariffs]);
   
-  const tripStats = calculateICEComparison(tripDistance, iceComparison, car, avgElectricityRate);
+  const tripStats = calculateICEComparison(tripDistance, iceComparison, car, evCostPer100km / 100);
   const tripKWh = (tripDistance / 100) * car.avgUsage;
   const tripLitres = (tripDistance / 100) * iceComparison.avgL100km;
   const tripBatteryPct = (tripKWh / car.batterySize) * 100;
+  const comparison100km = calculateICEComparison(100, iceComparison, car, evCostPer100km / 100);
+  const comparisonYearly = calculateICEComparison(15000, iceComparison, car, evCostPer100km / 100);
+
 
   return (
     <div className="flex flex-col gap-6 max-w-[1600px] mx-auto">
@@ -84,18 +96,30 @@ export const DashboardPage = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               title="EV cost/100kms"
-              value={`$${comparison100km.evCost.toFixed(2)}`}
+              value={`$${evCostPer100km.toFixed(2)}`}
               icon={Zap}
               accentClass="text-cyan-400"
-              description="Per 100km"
+              description={
+                <div className="flex items-center gap-1">
+                  <span>Per 100km</span>
+                  <Tooltip content="Calculated using your optimized charging schedule for the energy required to drive 100km." />
+                </div>
+              }
             />
+
             <StatCard
-              title="ICE cost/100kms"
-              value={`$${comparison100km.iceCost.toFixed(2)}`}
-              icon={Fuel}
-              accentClass="text-slate-500"
-              description="Per 100km"
+              title="EV cost/100kms"
+              value={`$${evCostPer100km.toFixed(2)}`}
+              icon={Zap}
+              accentClass="text-cyan-400"
+              description={
+                <div className="flex items-center gap-1">
+                  <span>Per 100km</span>
+                  <Tooltip content="Calculated using your optimized charging schedule for the energy required to drive 100km." />
+                </div>
+              }
             />
+
             <StatCard
               title="EV Savings per 100kms"
               value={`$${comparison100km.savings.toFixed(2)}`}
@@ -205,7 +229,7 @@ export const DashboardPage = () => {
   );
 };
 
-const StatCard = ({ title, value, icon: Icon, accentClass, description, highlight }: { title: string, value: string, icon: LucideIcon, accentClass: string, description: string, highlight?: boolean }) => (
+const StatCard = ({ title, value, icon: Icon, accentClass, description, highlight }: { title: string, value: string, icon: LucideIcon, accentClass: string, description: ReactNode, highlight?: boolean }) => (
   <Card className={clsx("!p-4 border-slate-800/40", highlight && "bg-emerald-500/[0.03] border-emerald-500/10")}>
     <div className="flex justify-between items-start mb-3">
       <div className="p-1.5 bg-slate-800/60 rounded-lg text-slate-400">
