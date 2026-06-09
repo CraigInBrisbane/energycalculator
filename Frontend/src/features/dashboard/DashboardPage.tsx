@@ -108,17 +108,24 @@ export const DashboardPage = () => {
               description={
                 <div className="flex items-center gap-1">
                   <span>Per 100km</span>
-                  <Tooltip content="Calculated using your optimized charging schedule for the energy required to drive 100km." />
+                  <Tooltip content={`Formula: (Usage / 100) * AvgCostPerKWh. Optimized cost used: $${evCostPer100km.avgCostPerKWh.toFixed(3)}/kWh.`} />
                 </div>
               }
             />
+
             <StatCard
               title="ICE cost/100kms"
               value={`$${comparison100km.iceCost.toFixed(2)}`}
               icon={Fuel}
               accentClass="text-slate-500"
-              description="Per 100km travel"
+              description={
+                <div className="flex items-center gap-1">
+                  <span>Per 100km travel</span>
+                  <Tooltip content={`Formula: (L/100km) * FuelPrice ($${iceComparison.fuelPrice}/L).`} />
+                </div>
+              }
             />
+
 
             <StatCard
               title="EV Savings per 100kms"
