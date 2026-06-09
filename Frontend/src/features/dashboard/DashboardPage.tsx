@@ -243,8 +243,8 @@ const StatCard = ({ title, value, icon: Icon, accentClass, description, highligh
     </div>
     <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">{title}</p>
     <p className={clsx("text-2xl font-bold tracking-tighter text-white leading-none", highlight && "glow-emerald")}>{value}</p>
-    <p className="text-[10px] text-slate-600 font-medium mt-1 whitespace-nowrap overflow-hidden text-ellipsis">
+    <div className="text-[10px] text-slate-600 font-medium mt-1 whitespace-nowrap overflow-hidden text-ellipsis">
       {description}
-    </p>
+    </div>
   </Card>
 );
