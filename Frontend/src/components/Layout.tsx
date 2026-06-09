@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Settings, LayoutDashboard, Calculator } from 'lucide-react';
 
 interface LayoutProps {
@@ -9,6 +10,20 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Sync tab state with URL on initial load
+  if (location.pathname !== `/${activeTab}`) {
+    const tab = location.pathname.replace('/', '') as 'dashboard' | 'planner' | 'settings';
+    if (tab && activeTab !== tab) setActiveTab(tab);
+  }
+
+  const handleNavigate = (tab: 'dashboard' | 'planner' | 'settings') => {
+    setActiveTab(tab);
+    navigate(`/${tab}`);
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pb-24 md:pb-0 md:pl-24 lg:pl-72">
       {/* Sidebar - Desktop */}
@@ -25,19 +40,19 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
             icon={LayoutDashboard}
             label="Dashboard"
             active={activeTab === 'dashboard'}
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() => handleNavigate('dashboard')}
           />
           <NavItem
             icon={Calculator}
             label="Planner"
             active={activeTab === 'planner'}
-            onClick={() => setActiveTab('planner')}
+            onClick={() => handleNavigate('planner')}
           />
           <NavItem
             icon={Settings}
             label="Settings"
             active={activeTab === 'settings'}
-            onClick={() => setActiveTab('settings')}
+            onClick={() => handleNavigate('settings')}
           />
         </nav>
 
@@ -54,17 +69,17 @@ export const Layout = ({ children, activeTab, setActiveTab }: LayoutProps) => {
         <MobileNavItem
           icon={LayoutDashboard}
           active={activeTab === 'dashboard'}
-          onClick={() => setActiveTab('dashboard')}
+          onClick={() => handleNavigate('dashboard')}
         />
         <MobileNavItem
           icon={Calculator}
           active={activeTab === 'planner'}
-          onClick={() => setActiveTab('planner')}
+          onClick={() => handleNavigate('planner')}
         />
         <MobileNavItem
           icon={Settings}
           active={activeTab === 'settings'}
-          onClick={() => setActiveTab('settings')}
+          onClick={() => handleNavigate('settings')}
         />
       </nav>
 
