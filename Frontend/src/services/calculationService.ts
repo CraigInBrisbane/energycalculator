@@ -137,12 +137,17 @@ const isTimeInRange = (time: string, start: string, end: string): boolean => {
 
 const findNextTariffChange = (time: Date, tariffs: Tariff[]): Date => {
   const baseDate = startOfDay(time);
-  const changeTimes: Date[] = [];
+  const nextDate = addMinutes(baseDate, 1440);
+  const changeTimes: Date[] = [nextDate]; // Default to midnight tomorrow
   
   tariffs.forEach(t => {
     const start = parse(t.startTime, 'HH:mm', baseDate);
     const end = parse(t.endTime, 'HH:mm', baseDate);
-    changeTimes.push(start, end, addMinutes(start, 1440), addMinutes(end, 1440));
+    
+    // Add times for today
+    changeTimes.push(start, end);
+    // Add times for tomorrow to handle potential future changes
+    changeTimes.push(addMinutes(start, 1440), addMinutes(end, 1440));
   });
 
   return changeTimes
