@@ -106,9 +106,12 @@ export const DashboardPage = () => {
               icon={Zap}
               accentClass="text-cyan-400"
               description={
-                <div className="flex items-center gap-1">
+                <div className="flex items-center">
                   <span>Per 100km</span>
-                  <Tooltip content={`Formula: (Usage / 100) * AvgCostPerKWh. Optimized cost used: $${evCostPer100km.avgCostPerKWh.toFixed(3)}/kWh.`} />
+                  <Tooltip 
+                    description="Calculated using your optimized charging schedule for the energy required to drive 100km." 
+                    formula={`Formula: (Usage / 100) * AvgCostPerKWh. Avg: $${evCostPer100km.avgCostPerKWh.toFixed(3)}/kWh.`} 
+                  />
                 </div>
               }
             />
@@ -119,9 +122,12 @@ export const DashboardPage = () => {
               icon={Fuel}
               accentClass="text-slate-500"
               description={
-                <div className="flex items-center gap-1">
+                <div className="flex items-center">
                   <span>Per 100km travel</span>
-                  <Tooltip content={`Formula: (L/100km) * FuelPrice ($${iceComparison.fuelPrice}/L).`} />
+                  <Tooltip 
+                    description="The cost to travel 100km using your ICE vehicle's fuel consumption."
+                    formula={`Formula: (L/100km) * FuelPrice ($${iceComparison.fuelPrice}/L).`}
+                  />
                 </div>
               }
             />
