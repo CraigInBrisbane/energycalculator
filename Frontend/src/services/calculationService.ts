@@ -98,7 +98,7 @@ export const getOptimizedSchedule = (
           tariff: segment.tariff,
           kWhCharged: amountToCharge,
           cost: amountToCharge * segment.rate,
-          rangeAdded: (amountToCharge / car.avgUsage) * 100,
+        rangeAdded: (amountToCharge / car.avgUsage) * 100,
         });
         remainingKWh -= amountToCharge;
       }
