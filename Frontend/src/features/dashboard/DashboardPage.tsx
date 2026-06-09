@@ -3,41 +3,27 @@ import { useAppStore } from '../../store/useAppStore';
 import { Card } from '../../components/Card';
 import { Input } from '../../components/Input';
 import { Tooltip } from '../../components/Tooltip';
-import { calculateICEComparison, getOptimizedSchedule, calculatePower } from '../../services/calculationService';
+import { calculateICEComparison } from '../../services/calculationService';
 import type { LucideIcon } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Fuel, Zap, TrendingDown, MapPin, Gauge } from 'lucide-react';
 
 export const DashboardPage = () => {
-  const { car, charger, iceComparison, tariffs } = useAppStore();
+  const { car, iceComparison, tariffs } = useAppStore();
   const [tripDistance, setTripDistance] = useState(37);
 
-  const avgElectricityRate = tariffs.reduce((sum, t) => sum + t.rate, 0) / tariffs.length;
+  const avgElectricityRate = useMemo(() => {
+    return tariffs.reduce((sum, t) => sum + t.rate, 0) / tariffs.length;
+  }, [tariffs]);
+
+  const evCostPer100km = (car.avgUsage / 100) * 100 * avgElectricityRate;
   
-  const evCostPer100km = useMemo(() => {
-    // Calculate cost to add the energy needed for 100km
-    const kwhNeeded = car.avgUsage; // 100km / 100 * usage
-    const powerKW = calculatePower(charger);
-    const targetTime = new Date();
-    targetTime.setHours(targetTime.getHours() + 24); // Look ahead 24h
-    
-    const schedule = getOptimizedSchedule(kwhNeeded, powerKW, tariffs, targetTime, car, new Date());
-    const totalCost = schedule.reduce((sum, s) => sum + s.cost, 0);
-    const totalKWh = schedule.reduce((sum, s) => sum + s.kWhCharged, 0);
-    
-    return {
-      costPer100km: totalCost,
-      avgCostPerKWh: totalKWh > 0 ? totalCost / totalKWh : 0
-    };
-  }, [car, charger, tariffs]);
-  
-  const tripStats = calculateICEComparison(tripDistance, iceComparison, car, evCostPer100km.avgCostPerKWh);
+  const tripStats = calculateICEComparison(tripDistance, iceComparison, car, avgElectricityRate / 100);
   const tripKWh = (tripDistance / 100) * car.avgUsage;
   const tripLitres = (tripDistance / 100) * iceComparison.avgL100km;
   const tripBatteryPct = (tripKWh / car.batterySize) * 100;
-  const comparison100km = calculateICEComparison(100, iceComparison, car, evCostPer100km.avgCostPerKWh);
-  const comparisonYearly = calculateICEComparison(15000, iceComparison, car, evCostPer100km.avgCostPerKWh);
-
+  const comparison100km = calculateICEComparison(100, iceComparison, car, avgElectricityRate / 100);
+  const comparisonYearly = calculateICEComparison(15000, iceComparison, car, avgElectricityRate / 100);
 
   return (
     <div className="flex flex-col gap-6 max-w-[1600px] mx-auto">
@@ -102,15 +88,15 @@ export const DashboardPage = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               title="EV cost/100kms"
-              value={`$${evCostPer100km.costPer100km.toFixed(2)}`}
+              value={`$${evCostPer100km.toFixed(2)}`}
               icon={Zap}
               accentClass="text-cyan-400"
               description={
                 <div className="flex items-center">
                   <span>Per 100km</span>
                   <Tooltip 
-                    description="Calculated using your optimized charging schedule for the energy required to drive 100km." 
-                    formula={`Formula: (Usage / 100) * AvgCostPerKWh. Avg: $${evCostPer100km.avgCostPerKWh.toFixed(3)}/kWh.`} 
+                    description="Estimated cost based on the simple average of all your configured tariff rates." 
+                    formula={`Formula: AvgUsage * AvgTariffRate ($${avgElectricityRate.toFixed(3)}/kWh).`} 
                   />
                 </div>
               }
@@ -131,7 +117,6 @@ export const DashboardPage = () => {
                 </div>
               }
             />
-
 
             <StatCard
               title="EV Savings per 100kms"
@@ -256,8 +241,8 @@ const StatCard = ({ title, value, icon: Icon, accentClass, description, highligh
     </div>
     <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">{title}</p>
     <p className={clsx("text-2xl font-bold tracking-tighter text-white leading-none", highlight && "glow-emerald")}>{value}</p>
-    <div className="text-[10px] text-slate-600 font-medium mt-1 whitespace-nowrap overflow-hidden text-ellipsis">
+    <p className="text-[10px] text-slate-600 font-medium mt-1 whitespace-nowrap overflow-hidden text-ellipsis">
       {description}
-    </div>
+    </p>
   </Card>
 );
