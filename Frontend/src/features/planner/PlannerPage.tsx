@@ -9,16 +9,14 @@ import { clsx } from 'clsx';
 import { Clock, DollarSign, Target, Calendar, Battery } from 'lucide-react';
 
 export const PlannerPage = () => {
-  const { car, charger, tariffs } = useAppStore();
+  const { car, charger, tariffs, plannerSettings, setPlannerSettings } = useAppStore();
   
-  const [currentPct, setCurrentPct] = useState(22);
-  const [targetPct, setTargetPct] = useState(80);
   const [targetTime, setTargetTime] = useState('08:00');
   const [targetDate, setTargetDate] = useState(format(addDays(new Date(), 1), 'yyyy-MM-dd'));
 
   const schedule = useMemo(() => {
     const powerKW = calculatePower(charger);
-    const kWhNeeded = calculateChargeNeeded(car, currentPct, targetPct);
+    const kWhNeeded = calculateChargeNeeded(car, plannerSettings.currentPct, plannerSettings.targetPct);
     
     const [hours, minutes] = targetTime.split(':').map(Number);
     let target = new Date(targetDate);
@@ -26,7 +24,7 @@ export const PlannerPage = () => {
     target = setMinutes(target, minutes);
 
     return getOptimizedSchedule(kWhNeeded, powerKW, tariffs, target, car, new Date());
-  }, [car, charger, tariffs, currentPct, targetPct, targetTime, targetDate]);
+  }, [car, charger, tariffs, plannerSettings.currentPct, plannerSettings.targetPct, targetTime, targetDate]);
 
   const totalCost = schedule.reduce((sum, s) => sum + s.cost, 0);
   const totalKWh = schedule.reduce((sum, s) => sum + s.kWhCharged, 0);
@@ -69,8 +67,8 @@ export const PlannerPage = () => {
                   type="number"
                   min="0"
                   max="100"
-                  value={currentPct}
-                  onChange={(e) => setCurrentPct(parseInt(e.target.value) || 0)}
+                  value={plannerSettings.currentPct}
+                  onChange={(e) => setPlannerSettings({ ...plannerSettings, currentPct: parseInt(e.target.value) || 0 })}
                   className="text-lg py-2 font-bold"
                 />
               </div>
@@ -80,11 +78,12 @@ export const PlannerPage = () => {
                   type="number"
                   min="0"
                   max="100"
-                  value={targetPct}
-                  onChange={(e) => setTargetPct(parseInt(e.target.value) || 0)}
+                  value={plannerSettings.targetPct}
+                  onChange={(e) => setPlannerSettings({ ...plannerSettings, targetPct: parseInt(e.target.value) || 0 })}
                   className="text-lg py-2 font-bold border-blue-500/30"
                 />
               </div>
+
               <div className="flex-[1.5] min-w-[160px]">
                 <Input
                   label="Target Date"

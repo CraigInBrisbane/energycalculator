@@ -25,9 +25,15 @@ export interface ICEComparison {
   avgL100km: number; // Litres/100km
 }
 
+export interface PlannerSettings {
+  currentPct: number;
+  targetPct: number;
+}
+
 export interface AppState {
   car: Car;
   charger: Charger;
   tariffs: Tariff[];
   iceComparison: ICEComparison;
+  plannerSettings: PlannerSettings;
 }

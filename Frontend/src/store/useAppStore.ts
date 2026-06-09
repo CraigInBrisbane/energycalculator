@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AppState, Car, Charger, Tariff, ICEComparison } from '../types';
+import type { AppState, Car, Charger, Tariff, ICEComparison, PlannerSettings } from '../types';
 
 interface AppStore extends AppState {
   setCar: (car: Car) => void;
   setCharger: (charger: Charger) => void;
   setIceComparison: (ice: ICEComparison) => void;
+  setPlannerSettings: (plannerSettings: PlannerSettings) => void;
   addTariff: (tariff: Tariff) => void;
   removeTariff: (id: string) => void;
   updateTariff: (tariff: Tariff) => void;
@@ -22,6 +23,10 @@ const DEFAULT_STATE: AppState = {
     voltage: 220,
     phases: 1,
     efficiency: 0.9,
+  },
+  plannerSettings: {
+    currentPct: 22,
+    targetPct: 80,
   },
   tariffs: [
     {
@@ -53,6 +58,7 @@ export const useAppStore = create<AppStore>()(
       setCar: (car) => set({ car }),
       setCharger: (charger) => set({ charger }),
       setIceComparison: (iceComparison) => set({ iceComparison }),
+      setPlannerSettings: (plannerSettings) => set({ plannerSettings }),
       addTariff: (tariff) => set((state) => ({ tariffs: [...state.tariffs, tariff] })),
       removeTariff: (id) =>
         set((state) => ({ tariffs: state.tariffs.filter((t) => t.id !== id) })),
